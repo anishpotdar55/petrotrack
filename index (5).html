@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PetroTrack · Oil & Gas Inventory System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f2ec;--bg2:#ede9e1;--surface:#fff;--border:#d8d2c8;
+  --text:#1a1714;--text2:#5a5550;--text3:#9a948e;
+  --amber:#c4720a;--amber-l:#fdf3e3;--amber-m:#f0a832;
+  --red:#c0392b;--red-l:#fdf0ee;
+  --green:#1e7b5e;--green-l:#eaf4f0;
+  --blue:#1d4ed8;--blue-l:#eff6ff;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.1);
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--text);display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.logo{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.logo-icon{width:36px;height:36px;background:var(--amber-m);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#000;flex-shrink:0}
+.logo-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.logo-tag{font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;letter-spacing:.5px}
+.nav{padding:16px 12px;flex:1}
+.nav-sec{font-size:9px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.25);letter-spacing:1.5px;text-transform:uppercase;padding:12px 8px 6px;margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--amber-m);color:#000;font-weight:600}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:10px}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,.08)}
+.user-card{display:flex;align-items:center;gap:10px}
+.user-av{width:32px;height:32px;border-radius:50%;background:var(--amber-m);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+.user-name{font-size:12px;font-weight:500;color:#fff}
+.user-role{font-size:10px;color:rgba(255,255,255,.35);font-family:'DM Mono',monospace}
+
+/* MAIN */
+.main{margin-left:220px;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.tb-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.tb-bread{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.live-badge{display:flex;align-items:center;gap:6px;background:var(--green-l);border:1px solid rgba(30,123,94,.2);border-radius:20px;padding:4px 10px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live-txt{font-size:11px;font-weight:500;color:var(--green);font-family:'DM Mono',monospace}
+.tb-btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-p{background:var(--text);color:#fff;border:none}.btn-p:hover{background:#2d2926}
+.btn-o{background:none;border:1px solid var(--border);color:var(--text2)}.btn-o:hover{border-color:var(--text2)}
+.content{padding:28px}
+.page{display:none}.page.active{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi-label{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.kpi-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);line-height:1;transition:all .3s}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:6px}
+.kpi-tag{position:absolute;top:16px;right:16px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;font-family:'DM Mono',monospace}
+.tag-ok{background:var(--green-l);color:var(--green)}
+.tag-warn{background:var(--amber-l);color:var(--amber)}
+.tag-crit{background:var(--red-l);color:var(--red)}
+
+/* LAYOUT */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.ph{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(245,242,236,.4)}
+.ph-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex:1}
+.ph-act{font-size:11px;font-weight:500;color:var(--amber);cursor:pointer;font-family:'DM Mono',monospace;border:none;background:none;padding:4px 8px;border-radius:5px}
+.ph-act:hover{background:var(--amber-l)}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse}
+.dt th{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)}
+.dt td{padding:11px 16px;border-bottom:1px solid rgba(216,210,200,.4);font-size:13px}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:rgba(244,241,235,.5)}
+.td-b{font-weight:600;color:var(--text)}
+.td-m{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+
+/* STOCK BAR */
+.sb-wrap{display:flex;align-items:center;gap:8px}
+.sb-track{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;max-width:80px}
+.sb-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.sb-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);width:28px;text-align:right}
+
+/* PILL */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace;white-space:nowrap}
+.pill-g{background:var(--green-l);color:var(--green)}
+.pill-a{background:var(--amber-l);color:var(--amber)}
+.pill-r{background:var(--red-l);color:var(--red)}
+.pill-b{background:var(--blue-l);color:var(--blue)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ACTIVITY */
+.act-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(216,210,200,.4);transition:background .15s}
+.act-item:last-child{border-bottom:none}
+.act-item:hover{background:rgba(244,241,235,.5)}
+.act-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.ai-in{background:var(--green-l)}.ai-out{background:var(--red-l)}.ai-tr{background:var(--blue-l)}.ai-al{background:var(--amber-l)}
+.act-body{flex:1}
+.act-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.act-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.act-qty{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex-shrink:0;padding-top:2px}
+.qty-p{color:var(--green)}.qty-n{color:var(--red)}
+
+/* TANK */
+.tank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:20px}
+.tank-card{border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s}
+.tank-card:hover{border-color:var(--amber-m);box-shadow:0 4px 16px rgba(196,114,10,.1);transform:translateY(-1px)}
+.tank-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px}
+.tank-loc{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:12px}
+.tank-vis{width:100%;height:60px;background:var(--bg2);border-radius:6px;overflow:hidden;position:relative;margin-bottom:10px}
+.tank-fill{position:absolute;bottom:0;left:0;right:0;transition:height 1.2s cubic-bezier(.34,1.56,.64,1)}
+.tank-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)}
+.tank-stats{display:flex;justify-content:space-between;font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)}
+
+/* FORM */
+.fg{margin-bottom:16px}
+.fl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;font-family:'DM Mono',monospace;margin-bottom:6px;display:block}
+.fi,.fs{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border .15s}
+.fi:focus,.fs:focus{border-color:var(--amber-m)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sub-btn{width:100%;padding:11px;background:var(--text);color:#fff;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px}
+.sub-btn:hover{background:var(--amber);transform:translateY(-1px);box-shadow:0 4px 12px rgba(196,114,10,.3)}
+
+/* SUPPLIER */
+.sup-card{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(216,210,200,.4)}
+.sup-card:last-child{border-bottom:none}
+.sup-logo{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.sup-name{font-weight:600;font-size:13px}
+.sup-type{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:1px}
+.sup-right{margin-left:auto;text-align:right}
+.sup-num{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.sup-lbl{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace}
+
+/* ALERT */
+.al-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid rgba(216,210,200,.4)}
+.al-item:last-child{border-bottom:none}
+.al-icon{font-size:20px;flex-shrink:0}
+.al-body{flex:1}
+.al-title{font-size:13px;font-weight:500}
+.al-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+.al-btn{font-size:11px;font-weight:600;color:var(--amber);cursor:pointer;padding:5px 10px;border:1px solid rgba(196,114,10,.3);border-radius:6px;background:none;transition:all .15s}
+.al-btn:hover{background:var(--amber-l)}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(26,23,20,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.mo.open{display:flex}
+.mo-box{background:var(--surface);border-radius:14px;width:420px;box-shadow:var(--shadow-lg);overflow:hidden;animation:moin .25s ease}
+@keyframes moin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.mo-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mo-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.mo-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text3);line-height:1;padding:2px 6px;border-radius:4px}
+.mo-close:hover{background:var(--bg2)}
+.mo-body{padding:20px}
+.mo-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.cancel-btn{padding:8px 16px;border:1px solid var(--border);border-radius:7px;background:none;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px}
+
+/* CHART */
+.chart-wrap{padding:20px}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;margin-bottom:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:5px 5px 0 0;min-height:4px;transition:height .8s cubic-bezier(.34,1.56,.64,1)}
+.bar-lbl{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);text-align:center;line-height:1.2}
+.bar-val{font-size:9px;font-family:'DM Mono',monospace;color:var(--text2);font-weight:500}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--text);color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:tin .3s ease;max-width:300px;border-left:3px solid var(--amber-m)}
+.toast-s{border-left-color:var(--green)}.toast-e{border-left-color:var(--red)}
+@keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* DEMO BADGE */
+.demo-bar{background:linear-gradient(90deg,var(--amber),#f5c842);padding:6px 0;text-align:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#000;letter-spacing:.5px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">⚡ DEMO MODE — Data simulated in browser · Not connected to live database</div>
+
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark"><div class="logo-icon">PT</div><div class="logo-name">PetroTrack</div></div>
+    <div class="logo-tag">OIL & GAS IMS v2.4</div>
+  </div>
+  <div class="nav">
+    <div class="nav-sec">Operations</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity=".5"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showPage('inventory',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 7h6M5 9.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Inventory
+    </button>
+    <button class="nav-item" onclick="showPage('tanks',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3 6h10" stroke="currentColor" stroke-width="1.2"/></svg>
+      Storage Tanks
+    </button>
+    <button class="nav-item" onclick="showPage('orders',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><path d="M2 4h12l-1 7H3L2 4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="5" cy="13.5" r="1" fill="currentColor"/><circle cx="11" cy="13.5" r="1" fill="currentColor"/></svg>
+      Dispatch Orders
+    </button>
+    <div class="nav-sec">Management</div>
+    <button class="nav-item" onclick="showPage('suppliers',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><path d="M2 12V6l5-4 5 4v6" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><rect x="6" y="8" width="4" height="4" rx=".5" stroke="currentColor" stroke-width="1.2"/></svg>
+      Suppliers
+    </button>
+    <button class="nav-item" onclick="showPage('alerts',this)">
+      <svg width="15" height="15" fill="none" viewBox="0 0 16 16"><path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.2"/></svg>
+      Alerts <span class="nav-badge" id="alert-badge">2</span>
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-av">RA</div>
+      <div><div class="user-name">Rahul Admin</div><div class="user-role">ops.manager</div></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="pg-title">Operations Dashboard</div>
+      <div class="tb-bread" id="pg-bread">Home / Dashboard</div>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge"><div class="live-dot"></div><span class="live-txt">DEMO</span></div>
+      <button class="tb-btn btn-o" onclick="openMo('moRecv')">+ Receive Stock</button>
+      <button class="tb-btn btn-p" onclick="openMo('moDisp')">↑ Dispatch</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-accent" style="background:linear-gradient(90deg,#f0a832,#f5c842)"></div>
+          <div class="kpi-label">Total Crude Stock</div>
+          <div class="kpi-value" id="kpi-crude">84,200</div>
+          <div class="kpi-sub">barrels · Tank Farm A</div>
+          <div class="kpi-tag tag-ok">NOMINAL</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-accent" style="background:linear-gradient(90deg,#1e7b5e,#2ec4b6)"></div>
+          <div class="kpi-label">Refined Products</div>
+          <div class="kpi-value" id="kpi-refined">10,900</div>
+          <div class="kpi-sub">metric tons · Block 3</div>
+          <div class="kpi-tag tag-ok">OK</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-accent" style="background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div>
+          <div class="kpi-label">Today's Throughput</div>
+          <div class="kpi-value" id="kpi-txn">0</div>
+          <div class="kpi-sub">operations this session</div>
+          <div class="kpi-tag tag-warn">SESSION</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-accent" style="background:linear-gradient(90deg,#c0392b,#e05c6c)"></div>
+          <div class="kpi-label">Stock Alerts</div>
+          <div class="kpi-value" id="kpi-alerts">2</div>
+          <div class="kpi-sub">products below reorder</div>
+          <div class="kpi-tag tag-crit" id="kpi-alert-tag">ACTION</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Recent Activity</span><button class="ph-act" onclick="showPage('orders',document.querySelectorAll('.nav-item')[3])">View All →</button></div>
+          <div id="act-feed"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Stock Levels Overview</span></div>
+          <div class="chart-wrap">
+            <div class="bar-chart" id="dash-chart"></div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;text-align:center;margin-top:4px">Product Inventory · % of Capacity</div>
+          </div>
+          <div style="padding:0 20px 16px;display:flex;gap:16px;flex-wrap:wrap">
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f0a832;margin-right:5px"></span><span style="font-size:11px;color:var(--text3)">Crude</span></div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1e7b5e;margin-right:5px"></span><span style="font-size:11px;color:var(--text3)">Refined</span></div>
+            <div><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c0392b;margin-right:5px"></span><span style="font-size:11px;color:var(--text3)">Low Stock</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Inventory Snapshot</span><button class="ph-act" onclick="showPage('inventory',document.querySelectorAll('.nav-item')[1])">Full View →</button></div>
+        <table class="dt"><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Level</th><th>Status</th><th>Source</th></tr></thead>
+        <tbody id="snap-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page" id="page-inventory">
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Full Inventory Register</span><button class="ph-act" onclick="openMo('moRecv')">+ Receive Stock</button></div>
+        <div style="overflow-x:auto">
+        <table class="dt"><thead><tr><th>ID</th><th>Product Name</th><th>Type</th><th>Quantity</th><th>Unit</th><th>Tank</th><th>Source</th><th>Reorder Level</th><th>Status</th></tr></thead>
+        <tbody id="inv-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- TANKS -->
+    <div class="page" id="page-tanks">
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Storage Tank Farm</span><span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">6 tanks · Zones A–D</span></div>
+        <div class="tank-grid" id="tank-grid"></div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="page" id="page-orders">
+      <div class="grid-2" style="align-items:start">
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Create Dispatch Order</span></div>
+          <div style="padding:20px">
+            <div class="fg"><label class="fl">Product</label>
+              <select class="fs" id="ord-prod">
+                <option value="CRUDE-001">Crude Oil (Brent) — CRUDE-001</option>
+                <option value="CRUDE-002">Crude Oil (WTI) — CRUDE-002</option>
+                <option value="DIST-001">Diesel EN590 — DIST-001</option>
+                <option value="DIST-002">Aviation Fuel JA1 — DIST-002</option>
+                <option value="GAS-001">LPG Propane Mix — GAS-001</option>
+                <option value="OIL-001">Lubricant Base Oil — OIL-001</option>
+              </select>
+            </div>
+            <div class="fr">
+              <div class="fg"><label class="fl">Quantity</label><input class="fi" type="number" id="ord-qty" placeholder="0" min="1"/></div>
+              <div class="fg"><label class="fl">Unit</label><select class="fs" id="ord-unit"><option>bbl</option><option>MT</option><option>liters</option></select></div>
+            </div>
+            <div class="fg"><label class="fl">Destination</label><input class="fi" type="text" id="ord-dest" placeholder="e.g. Refinery South Wing"/></div>
+            <div class="fg"><label class="fl">Priority</label><select class="fs" id="ord-pri"><option>Normal</option><option>Urgent</option><option>Scheduled</option></select></div>
+            <button class="sub-btn" onclick="createOrder()">Create Dispatch Order</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Recent Dispatch Orders</span></div>
+          <div id="orders-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div class="page" id="page-suppliers">
+      <div class="grid-2" style="align-items:start">
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Active Suppliers</span></div>
+          <div id="sup-list"></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><span class="ph-title">Upcoming Deliveries</span></div>
+          <table class="dt"><thead><tr><th>ETA</th><th>Supplier</th><th>Product</th><th>Volume</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="td-m">Apr 30 · 08:00</td><td class="td-b">ArabOil Co.</td><td>Crude (Brent)</td><td class="td-m">5,000 bbl</td><td><span class="pill pill-b"><span class="pill-dot"></span>En Route</span></td></tr>
+            <tr><td class="td-m">Apr 30 · 14:30</td><td class="td-b">Gulf Petro</td><td>Diesel EN590</td><td class="td-m">1,200 MT</td><td><span class="pill pill-a"><span class="pill-dot"></span>Scheduled</span></td></tr>
+            <tr><td class="td-m">May 01 · 09:00</td><td class="td-b">Pipeline-A</td><td>Crude (WTI)</td><td class="td-m">3,800 bbl</td><td><span class="pill pill-g"><span class="pill-dot"></span>Confirmed</span></td></tr>
+            <tr><td class="td-m">May 02 · 11:00</td><td class="td-b">LiquidGas Ltd</td><td>LPG Mix</td><td class="td-m">800 MT</td><td><span class="pill pill-b"><span class="pill-dot"></span>En Route</span></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <div class="panel">
+        <div class="ph"><span class="ph-title">Active Stock Alerts</span></div>
+        <div id="alerts-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RECEIVE MODAL -->
+<div class="mo" id="moRecv">
+  <div class="mo-box">
+    <div class="mo-head"><div class="mo-title">Receive Stock Inbound</div><button class="mo-close" onclick="closeMo('moRecv')">×</button></div>
+    <div class="mo-body">
+      <div class="fg"><label class="fl">Product</label>
+        <select class="fs" id="rv-prod">
+          <option value="CRUDE-001">Crude Oil (Brent)</option><option value="CRUDE-002">Crude Oil (WTI)</option>
+          <option value="DIST-001">Diesel EN590</option><option value="DIST-002">Aviation Fuel JA1</option>
+          <option value="GAS-001">LPG Propane Mix</option><option value="OIL-001">Lubricant Base Oil</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Quantity</label><input class="fi" type="number" id="rv-qty" placeholder="0" min="1"/></div>
+        <div class="fg"><label class="fl">Source</label>
+          <select class="fs" id="rv-src"><option>PIPELINE-A</option><option>TANKER-B7</option><option>REFINERY-1</option><option>PLANT-3</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="mo-foot">
+      <button class="cancel-btn" onclick="closeMo('moRecv')">Cancel</button>
+      <button class="sub-btn" style="width:auto;padding:8px 20px;margin:0" onclick="receiveStock()">Confirm Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPATCH MODAL -->
+<div class="mo" id="moDisp">
+  <div class="mo-box">
+    <div class="mo-head"><div class="mo-title">Create Dispatch</div><button class="mo-close" onclick="closeMo('moDisp')">×</button></div>
+    <div class="mo-body">
+      <div class="fg"><label class="fl">Product</label>
+        <select class="fs" id="dp-prod">
+          <option value="CRUDE-001">Crude Oil (Brent)</option><option value="CRUDE-002">Crude Oil (WTI)</option>
+          <option value="DIST-001">Diesel EN590</option><option value="DIST-002">Aviation Fuel JA1</option>
+          <option value="GAS-001">LPG Propane Mix</option><option value="OIL-001">Lubricant Base Oil</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Quantity</label><input class="fi" type="number" id="dp-qty" placeholder="0" min="1"/></div>
+        <div class="fg"><label class="fl">Destination</label><input class="fi" type="text" id="dp-dest" placeholder="e.g. Depot South"/></div>
+      </div>
+    </div>
+    <div class="mo-foot">
+      <button class="cancel-btn" onclick="closeMo('moDisp')">Cancel</button>
+      <button class="sub-btn" style="width:auto;padding:8px 20px;margin:0;background:var(--red)" onclick="dispatchStock()">Confirm Dispatch</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+const inv = [
+  { id:'CRUDE-001', name:'Crude Oil (Brent)', type:'Crude',   qty:84200, cap:120000, unit:'bbl', reorder:15000, src:'PIPELINE-A', tank:'TK-01' },
+  { id:'CRUDE-002', name:'Crude Oil (WTI)',   type:'Crude',   qty:62400, cap:100000, unit:'bbl', reorder:15000, src:'TANKER-B7',  tank:'TK-02' },
+  { id:'DIST-001',  name:'Diesel EN590',      type:'Refined', qty:4200,  cap:20000,  unit:'MT',  reorder:5000,  src:'REFINERY-1', tank:'TK-03' },
+  { id:'DIST-002',  name:'Aviation Fuel JA1', type:'Refined', qty:3800,  cap:15000,  unit:'MT',  reorder:4000,  src:'REFINERY-1', tank:'TK-06' },
+  { id:'GAS-001',   name:'LPG Propane Mix',   type:'Gas',     qty:11200, cap:25000,  unit:'MT',  reorder:3000,  src:'PLANT-3',    tank:'TK-05' },
+  { id:'OIL-001',   name:'Lubricant Base Oil',type:'Refined', qty:2900,  cap:10000,  unit:'MT',  reorder:3500,  src:'REFINERY-2', tank:'TK-04' },
+];
+
+const tanks = [
+  { id:'TK-01', name:'Tank Farm A · T1', loc:'Zone A, North', cap:120000, color:'#f0a832', prod:'Crude Oil (Brent)' },
+  { id:'TK-02', name:'Tank Farm A · T2', loc:'Zone A, South', cap:100000, color:'#f0a832', prod:'Crude Oil (WTI)' },
+  { id:'TK-03', name:'Block 3 · East',   loc:'Zone C, East',  cap:35000,  color:'#1e7b5e', prod:'Diesel EN590' },
+  { id:'TK-04', name:'Block 3 · West',   loc:'Zone C, West',  cap:10000,  color:'#c4720a', prod:'Lubricant Base Oil' },
+  { id:'TK-05', name:'Gas Sphere GS-1',  loc:'Zone D',        cap:25000,  color:'#1d4ed8', prod:'LPG Propane Mix' },
+  { id:'TK-06', name:'Jet Fuel Store JF',loc:'Zone B',        cap:15000,  color:'#7c3aed', prod:'Aviation Fuel JA1' },
+];
+
+const suppliers = [
+  { name:'ArabOil Co.',    type:'Pipeline Supplier', color:'#c4720a', del:14, vol:'42,800 bbl' },
+  { name:'Gulf Petro Ltd', type:'Marine Tanker',     color:'#1e7b5e', del:8,  vol:'28,400 MT' },
+  { name:'LiquidGas Ltd',  type:'Gas Distributor',   color:'#1d4ed8', del:5,  vol:'12,500 MT' },
+  { name:'Refinery-1',     type:'Processing Plant',  color:'#7c3aed', del:22, vol:'67,200 MT' },
+];
+
+let activity = [
+  { type:'in',  icon:'⬇', title:'3,200 bbl received from Pipeline-A', meta:'CRUDE-001 · TK-01 · 09:42', qty:'+3,200 bbl', pos:true },
+  { type:'out', icon:'⬆', title:'850 MT dispatched to Depot South',    meta:'DIST-001 · 09:38',           qty:'-850 MT',    pos:false },
+  { type:'in',  icon:'⬇', title:'1,800 bbl received from Tanker-B7',   meta:'CRUDE-002 · TK-02 · 09:31', qty:'+1,800 bbl', pos:true },
+  { type:'tr',  icon:'⟳', title:'500 MT transferred to Block 3',       meta:'GAS-001 · TK-05 · 09:25',   qty:'500 MT',     pos:null },
+  { type:'out', icon:'⬆', title:'1,200 MT dispatched — Aviation Fuel', meta:'DIST-002 · 09:18',           qty:'-1,200 MT',  pos:false },
+  { type:'al',  icon:'⚠', title:'Lubricant Base Oil below reorder',    meta:'OIL-001 · Auto-alert',       qty:'⚠ 2,900 MT', pos:null },
+];
+
+let orders = [
+  { prod:'Crude Oil (Brent)', qty:'5,000 bbl', dest:'Refinery South Wing', status:'Delivered', pri:'Normal' },
+  { prod:'Diesel EN590',      qty:'850 MT',    dest:'Depot South',         status:'In Transit', pri:'Urgent' },
+  { prod:'Aviation Fuel JA1', qty:'1,200 MT',  dest:'Airport Depot',       status:'Processing', pri:'Normal' },
+];
+
+let txnCount = 0;
+const typeColor = { Crude:'#f0a832', Refined:'#1e7b5e', Gas:'#1d4ed8' };
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function statusPill(item) {
+  if (item.qty < item.reorder) return '<span class="pill pill-r"><span class="pill-dot"></span>Low Stock</span>';
+  const pct = item.qty / item.cap * 100;
+  if (pct > 75) return '<span class="pill pill-g"><span class="pill-dot"></span>Healthy</span>';
+  return '<span class="pill pill-a"><span class="pill-dot"></span>Moderate</span>';
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+}
+
+function countAlerts() {
+  return inv.filter(i => i.qty < i.reorder).length;
+}
+
+function updateKPIs() {
+  const crude   = inv.filter(i=>i.type==='Crude').reduce((s,i)=>s+i.qty,0);
+  const refined = inv.filter(i=>i.type==='Refined').reduce((s,i)=>s+i.qty,0);
+  const alerts  = countAlerts();
+  document.getElementById('kpi-crude').textContent    = crude.toLocaleString();
+  document.getElementById('kpi-refined').textContent  = refined.toLocaleString();
+  document.getElementById('kpi-txn').textContent      = txnCount;
+  document.getElementById('kpi-alerts').textContent   = alerts;
+  document.getElementById('alert-badge').textContent  = alerts;
+  document.getElementById('kpi-alert-tag').textContent = alerts > 0 ? 'ACTION' : 'OK';
+  document.getElementById('kpi-alert-tag').className  = 'kpi-tag ' + (alerts > 0 ? 'tag-crit' : 'tag-ok');
+}
+
+// ── RENDERS ────────────────────────────────────────────────────────────────────
+function renderActivity() {
+  const typeClass = { in:'ai-in', out:'ai-out', tr:'ai-tr', al:'ai-al' };
+  document.getElementById('act-feed').innerHTML = activity.slice(0,6).map(a => `
+    <div class="act-item">
+      <div class="act-icon ${typeClass[a.type]}">${a.icon}</div>
+      <div class="act-body"><div class="act-title">${a.title}</div><div class="act-meta">${a.meta}</div></div>
+      <div class="act-qty ${a.pos===true?'qty-p':a.pos===false?'qty-n':''}">${a.qty}</div>
+    </div>`).join('');
+}
+
+function renderChart() {
+  document.getElementById('dash-chart').innerHTML = inv.map(item => {
+    const pct = Math.round(item.qty / item.cap * 100);
+    const color = item.qty < item.reorder ? '#c0392b' : typeColor[item.type] || '#888';
+    const h = Math.max(6, pct * 1.3);
+    return `<div class="bar-col">
+      <div class="bar-val">${pct}%</div>
+      <div class="bar" style="height:${h}px;background:${color}"></div>
+      <div class="bar-lbl">${item.id.split('-')[0]}<br>${item.id.split('-')[1]}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSnap() {
+  document.getElementById('snap-tbody').innerHTML = inv.map(item => {
+    const pct = Math.min(100, Math.round(item.qty / item.cap * 100));
+    const col = item.qty < item.reorder ? '#c0392b' : typeColor[item.type] || '#888';
+    const tc  = item.type==='Crude'?'pill-a':item.type==='Gas'?'pill-b':'pill-g';
+    return `<tr>
+      <td class="td-b">${item.name}</td>
+      <td><span class="pill ${tc}">${item.type}</span></td>
+      <td class="td-m">${item.qty.toLocaleString()} ${item.unit}</td>
+      <td><div class="sb-wrap"><div class="sb-track"><div class="sb-fill" style="width:${pct}%;background:${col}"></div></div><span class="sb-pct">${pct}%</span></div></td>
+      <td>${statusPill(item)}</td>
+      <td class="td-m">${item.src}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInv() {
+  document.getElementById('inv-tbody').innerHTML = inv.map(item => {
+    const tc = item.type==='Crude'?'pill-a':item.type==='Gas'?'pill-b':'pill-g';
+    return `<tr>
+      <td class="td-m">${item.id}</td>
+      <td class="td-b">${item.name}</td>
+      <td><span class="pill ${tc}">${item.type}</span></td>
+      <td class="td-m">${item.qty.toLocaleString()}</td>
+      <td class="td-m">${item.unit}</td>
+      <td class="td-m">${item.tank}</td>
+      <td class="td-m">${item.src}</td>
+      <td class="td-m">${item.reorder.toLocaleString()}</td>
+      <td>${statusPill(item)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTanks() {
+  document.getElementById('tank-grid').innerHTML = tanks.map(t => {
+    const item = inv.find(i => i.tank === t.id);
+    const qty  = item ? item.qty : 0;
+    const pct  = Math.round(qty / t.cap * 100);
+    return `<div class="tank-card" onclick="toast('${t.id}: ${qty.toLocaleString()} units · ${pct}% full','info')">
+      <div class="tank-name">${t.id}</div>
+      <div class="tank-loc">${t.loc}</div>
+      <div class="tank-vis">
+        <div class="tank-fill" style="height:${pct}%;background:${t.color}33;border-top:2px solid ${t.color}"></div>
+        <div class="tank-pct">${pct}%</div>
+      </div>
+      <div class="tank-stats">
+        <span>${t.prod}</span>
+        <span style="color:var(--text2);font-weight:500">${(qty/1000).toFixed(0)}k / ${(t.cap/1000).toFixed(0)}k</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOrders() {
+  const sc = { 'Delivered':'pill-g','In Transit':'pill-b','Processing':'pill-a' };
+  document.getElementById('orders-list').innerHTML = orders.map(o => `
+    <div class="act-item">
+      <div class="act-icon ai-tr" style="font-size:12px;font-weight:700">⬆</div>
+      <div class="act-body"><div class="act-title">${o.qty} · ${o.prod}</div><div class="act-meta">${o.dest} · ${o.pri}</div></div>
+      <span class="pill ${sc[o.status]||'pill-b'}"><span class="pill-dot"></span>${o.status}</span>
+    </div>`).join('');
+}
+
+function renderSuppliers() {
+  document.getElementById('sup-list').innerHTML = suppliers.map(s => `
+    <div class="sup-card">
+      <div class="sup-logo" style="background:${s.color}">${s.name.slice(0,2).toUpperCase()}</div>
+      <div><div class="sup-name">${s.name}</div><div class="sup-type">${s.type}</div></div>
+      <div class="sup-right"><div class="sup-num">${s.del}</div><div class="sup-lbl">deliveries · ${s.vol}</div></div>
+    </div>`).join('');
+}
+
+function renderAlerts() {
+  const low = inv.filter(i => i.qty < i.reorder);
+  document.getElementById('alerts-body').innerHTML = low.length
+    ? low.map(item => {
+        const short = item.reorder - item.qty;
+        return `<div class="al-item">
+          <div class="al-icon">⚠️</div>
+          <div class="al-body">
+            <div class="al-title">${item.name} below reorder threshold</div>
+            <div class="al-sub">Current: ${item.qty.toLocaleString()} ${item.unit} · Reorder: ${item.reorder.toLocaleString()} · Shortage: ${short.toLocaleString()}</div>
+          </div>
+          <button class="al-btn" onclick="openMo('moRecv')">Order Now</button>
+        </div>`;
+      }).join('')
+    : '<div style="padding:40px;text-align:center;color:var(--green);font-family:\'DM Mono\',monospace;font-size:13px">✓ All stock levels are healthy</div>';
+}
+
+function renderAll() {
+  updateKPIs();
+  renderActivity();
+  renderChart();
+  renderSnap();
+  renderInv();
+  renderTanks();
+  renderOrders();
+  renderSuppliers();
+  renderAlerts();
+}
+
+// ── ACTIONS ────────────────────────────────────────────────────────────────────
+function receiveStock() {
+  const pid = document.getElementById('rv-prod').value;
+  const qty = parseInt(document.getElementById('rv-qty').value) || 0;
+  const src = document.getElementById('rv-src').value;
+  if (!qty || qty <= 0) { toast('Enter a valid quantity','error'); return; }
+  const item = inv.find(i => i.id === pid);
+  if (!item) return;
+  item.qty += qty;
+  item.src  = src;
+  txnCount++;
+  activity.unshift({ type:'in', icon:'⬇', title:`${qty.toLocaleString()} ${item.unit} received from ${src}`, meta:`${pid} · ${item.tank} · ${now()}`, qty:`+${qty.toLocaleString()}`, pos:true });
+  closeMo('moRecv');
+  document.getElementById('rv-qty').value = '';
+  toast(`✓ ${qty.toLocaleString()} ${item.unit} added to ${item.name}`,'success');
+  renderAll();
+}
+
+function dispatchStock() {
+  const pid  = document.getElementById('dp-prod').value;
+  const qty  = parseInt(document.getElementById('dp-qty').value) || 0;
+  const dest = document.getElementById('dp-dest').value || 'Destination';
+  if (!qty || qty <= 0) { toast('Enter a valid quantity','error'); return; }
+  const item = inv.find(i => i.id === pid);
+  if (!item) return;
+  if (item.qty < qty) { toast(`Insufficient stock! Available: ${item.qty.toLocaleString()} ${item.unit}`,'error'); return; }
+  item.qty -= qty;
+  txnCount++;
+  activity.unshift({ type:'out', icon:'⬆', title:`${qty.toLocaleString()} ${item.unit} dispatched to ${dest}`, meta:`${pid} · ${now()}`, qty:`-${qty.toLocaleString()}`, pos:false });
+  orders.unshift({ prod:item.name, qty:`${qty.toLocaleString()} ${item.unit}`, dest, status:'Processing', pri:'Normal' });
+  closeMo('moDisp');
+  document.getElementById('dp-qty').value = '';
+  document.getElementById('dp-dest').value = '';
+  toast(`✓ Dispatch order created for ${item.name}`,'success');
+  renderAll();
+}
+
+function createOrder() {
+  const prod = document.getElementById('ord-prod').value.split('—')[0].trim();
+  const qty  = parseInt(document.getElementById('ord-qty').value) || 0;
+  const unit = document.getElementById('ord-unit').value;
+  const dest = document.getElementById('ord-dest').value || 'Destination';
+  const pri  = document.getElementById('ord-pri').value;
+  if (!qty) { toast('Enter quantity','error'); return; }
+  orders.unshift({ prod, qty:`${qty.toLocaleString()} ${unit}`, dest, status:'Processing', pri });
+  txnCount++;
+  toast(`✓ Order created — ${qty.toLocaleString()} ${unit} of ${prod}`,'success');
+  renderOrders(); updateKPIs();
+  document.getElementById('ord-qty').value = '';
+  document.getElementById('ord-dest').value = '';
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type==='success'?'toast-s':type==='error'?'toast-e':''}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+function openMo(id)  { document.getElementById(id).classList.add('open'); }
+function closeMo(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.mo').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+const pageMeta = {
+  dashboard: ['Operations Dashboard','Home / Dashboard'],
+  inventory: ['Inventory Register','Home / Inventory'],
+  tanks:     ['Storage Tanks','Home / Tanks'],
+  orders:    ['Dispatch Orders','Home / Orders'],
+  suppliers: ['Suppliers','Home / Suppliers'],
+  alerts:    ['Alerts','Home / Alerts'],
+};
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const [title,bread] = pageMeta[name]||['—','—'];
+  document.getElementById('pg-title').textContent = title;
+  document.getElementById('pg-bread').textContent = bread;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
